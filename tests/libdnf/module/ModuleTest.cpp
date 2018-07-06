@@ -2,8 +2,9 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ModuleTest);
 
-#include "libdnf/dnf-module.h"
+#include "libdnf/dnf-module.hpp"
 
+using namespace libdnf;
 
 void ModuleTest::setUp()
 {
@@ -15,30 +16,46 @@ void ModuleTest::tearDown()
 
 void ModuleTest::testDummy()
 {
-    GPtrArray *module_list;
-    GError *error;
-    gboolean ret;
+    std::vector<std::string> module_list;
 
-    g_debug("called ModuleTest::testDummy()");
+    std::cout << "called ModuleTest::testDummy()" << std::endl;
 
-    module_list = g_ptr_array_new ();
-
-    /* call with empty module list should fail */
-    error = nullptr;
-    ret = dnf_module_dummy( module_list, &error);
-    g_assert(ret == FALSE);
-    g_assert_error(error, DNF_ERROR, DNF_ERROR_FAILED);
+    /* call with empty module list should do nothing */
+    {
+        bool ret = dnf_module_dummy(module_list);
+        g_assert(ret);
+    }
 
     /* add some modules to the list and try again */
-    g_ptr_array_add(module_list, (gpointer)"moduleA");
-    g_ptr_array_add(module_list, (gpointer)"moduleB");
-    g_ptr_array_add(module_list, (gpointer)"moduleC");
+    module_list.push_back(std::string("moduleA"));
+    module_list.push_back(std::string("moduleB:streamB"));
+    module_list.push_back(std::string("moduleC:streamC/profileC"));
 
-    error = nullptr;
-    ret = dnf_module_dummy( module_list, &error);
-    g_assert(ret == TRUE);
-    g_assert_no_error(error);
-
-    g_ptr_array_free (module_list, TRUE);
+    {
+        bool ret = dnf_module_dummy(module_list);
+        CPPUNIT_ASSERT(ret);
+    }
 }
 
+void ModuleTest::testEnable()
+{
+    std::vector<std::string> module_list;
+
+    std::cout << "called ModuleTest::testDummy()" << std::endl;
+
+    /* call with empty module list should throw exception */
+    {
+        CPPUNIT_ASSERT_THROW(dnf_module_enable(module_list),
+                             std::runtime_error);
+    }
+
+    /* add some modules to the list and try again */
+    module_list.push_back(std::string("moduleA"));
+    module_list.push_back(std::string("moduleB:streamB"));
+    module_list.push_back(std::string("moduleC:streamC/profileC"));
+
+    {
+        bool ret = dnf_module_enable(module_list);
+        CPPUNIT_ASSERT(ret);
+    }
+}
