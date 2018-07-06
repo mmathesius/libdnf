@@ -23,10 +23,28 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
+#include <memory>
 
 #include "dnf-types.h"
 
 namespace libdnf {
+
+struct ModuleCommandException : public std::runtime_error {
+    explicit ModuleCommandException(const std::string &what) : std::runtime_error(what) {}
+};
+
+typedef std::vector<ModuleCommandException> ModuleExceptionList;
+
+class ModuleException : public std::exception {
+public:
+    explicit ModuleException(const ModuleExceptionList &what) : e_list(std::move(what)) {}
+    const ModuleExceptionList & list() const noexcept { return e_list; }
+    const char* what() const noexcept { return e_list.front().what(); }
+
+private:
+    ModuleExceptionList e_list;
+};
 
 bool dnf_module_dummy(const std::vector<std::string> & module_list);
 bool dnf_module_enable(const std::vector<std::string> & module_list);
