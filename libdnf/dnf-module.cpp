@@ -35,6 +35,40 @@
 
 namespace libdnf {
 
+static bool
+dnf_module_parse_spec(const std::string module_spec, Nsvcap & spec)
+{
+    g_debug("%s(module_spec=\"%s\")", __func__, module_spec.c_str());
+
+    bool is_spec_valid = false;
+    spec.clear();
+    for (std::size_t i = 0;
+	 HY_MODULE_FORMS_MOST_SPEC[i] != _HY_MODULE_FORM_STOP_;
+	 ++i) {
+	auto form = HY_MODULE_FORMS_MOST_SPEC[i];
+
+	if (spec.parse(module_spec.c_str(), form)) {
+	    is_spec_valid = true;
+	    break;
+	}
+    }
+
+    /* FIXME: throw exception? */
+    if (!is_spec_valid) {
+	/* std::cerr << "Invalid spec \"" << module_spec << "\"" << std::endl; */
+        g_debug("Invalid module spec: \"%s\"", module_spec.c_str());
+        return false;
+    }
+
+    g_debug("N:S:V:C:A/P = %s:%s:%lld:%s:%s/%s",
+            spec.getName().c_str(), spec.getStream().c_str(),
+            spec.getVersion(), spec.getContext().c_str(),
+            spec.getArch().c_str(), spec.getProfile().c_str());
+
+    return true;
+}
+
+
 bool
 dnf_module_dummy(const std::vector<std::string> & module_list)
 {
@@ -56,28 +90,19 @@ dnf_module_enable(const std::vector<std::string> & module_list)
         Nsvcap spec;
 
         std::cout << "Parsing module_spec \"" << module_spec << "\"" << std::endl;
-        bool is_spec_valid = false;
-        for (std::size_t i = 0;
-             HY_MODULE_FORMS_MOST_SPEC[i] != _HY_MODULE_FORM_STOP_;
-             ++i) {
-            auto form = HY_MODULE_FORMS_MOST_SPEC[i];
-
-            if (spec.parse(module_spec.c_str(), form)) {
-                is_spec_valid = true;
-                break;
-            }
-        }
 
         /* FIXME: throw exception? */
-        if (!is_spec_valid) {
+        if (!dnf_module_parse_spec(module_spec, spec)) {
             std::cerr << "Invalid spec \"" << module_spec << "\"" << std::endl;
-            continue;
+            return false;
         }
 
         std::cout << "Name: " << spec.getName() << std::endl;
         std::cout << "Stream: " << spec.getStream() << std::endl;
-        std::cout << "Profile: " << spec.getProfile() << std::endl;
         std::cout << "Version: " << spec.getVersion() << std::endl;
+        std::cout << "Context: " << spec.getContext() << std::endl;
+        std::cout << "Arch: " << spec.getArch() << std::endl;
+        std::cout << "Profile: " << spec.getProfile() << std::endl;
 
         /* FIXME: check that module exists */
 

@@ -18,8 +18,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#ifndef __DNF_MODULE_H
-#define __DNF_MODULE_H
+#ifndef __DNF_MODULE_HPP
+#define __DNF_MODULE_HPP
 
 #include <vector>
 #include <string>
@@ -33,4 +33,4 @@ bool dnf_module_enable(const std::vector<std::string> & module_list);
 
 }
 
-#endif /* __DNF_MODULE_H */
+#endif /* __DNF_MODULE_HPP */

@@ -23,7 +23,7 @@ void ModuleTest::testDummy()
     /* call with empty module list should do nothing */
     {
         bool ret = dnf_module_dummy(module_list);
-        g_assert(ret);
+        CPPUNIT_ASSERT(ret);
     }
 
     /* add some modules to the list and try again */
@@ -41,7 +41,7 @@ void ModuleTest::testEnable()
 {
     std::vector<std::string> module_list;
 
-    std::cout << "called ModuleTest::testDummy()" << std::endl;
+    std::cout << "called ModuleTest::testEnable()" << std::endl;
 
     /* call with empty module list should throw exception */
     {
@@ -57,5 +57,14 @@ void ModuleTest::testEnable()
     {
         bool ret = dnf_module_enable(module_list);
         CPPUNIT_ASSERT(ret);
+    }
+
+    /* make sure an invalid module spec returns an error */
+    module_list.clear();
+    module_list.push_back(std::string("%"));
+
+    {
+        bool ret = dnf_module_enable(module_list);
+        CPPUNIT_ASSERT(!ret);
     }
 }
