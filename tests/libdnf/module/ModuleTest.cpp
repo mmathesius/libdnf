@@ -79,3 +79,12 @@ void ModuleTest::testEnable()
         CPPUNIT_ASSERT(dnf_module_enable(module_list));
     }
 }
+
+void ModuleTest::testList()
+{
+    std::cout << "called ModuleTest::testModList()" << std::endl;
+
+    {
+        CPPUNIT_ASSERT(dnf_module_list(/* options */));
+    }
+}

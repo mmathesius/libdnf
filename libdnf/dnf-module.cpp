@@ -121,4 +121,22 @@ dnf_module_enable(const std::vector<std::string> & module_list)
     return true;
 }
 
+std::vector<std::shared_ptr<ModuleMetadata> >
+dnf_module_query(/* filter options */)
+{
+    std::vector<std::shared_ptr<ModuleMetadata> > results;
+
+    return results;
+}
+
+bool
+dnf_module_list(/* options */)
+{
+    std::vector<std::shared_ptr<ModuleMetadata> > results;
+
+    results = dnf_module_query();
+
+    return true;
+}
+
 }

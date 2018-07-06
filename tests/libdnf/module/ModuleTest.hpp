@@ -10,6 +10,7 @@ class ModuleTest : public CppUnit::TestCase
     CPPUNIT_TEST_SUITE(ModuleTest);
         CPPUNIT_TEST(testDummy);
         CPPUNIT_TEST(testEnable);
+        CPPUNIT_TEST(testList);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -18,6 +19,7 @@ public:
 
     void testDummy();
     void testEnable();
+    void testList();
 };
 
 #endif //LIBDNF_MODULETEST_HPP
