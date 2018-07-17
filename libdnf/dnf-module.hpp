@@ -29,6 +29,7 @@
 #include <modulemd/modulemd-simpleset.h>
 
 #include "dnf-types.h"
+#include "dnf-context.h"
 #include "module/modulemd/ModuleMetadata.hpp"
 
 namespace libdnf {
@@ -49,10 +50,10 @@ private:
     ModuleExceptionList e_list;
 };
 
-bool dnf_module_dummy(const std::vector<std::string> & module_list);
-bool dnf_module_enable(const std::vector<std::string> & module_list);
-std::vector<std::shared_ptr<ModuleMetadata> > dnf_module_query(/* filter options */);
-bool dnf_module_list(/* options */);
+bool dnf_module_dummy(DnfContext *context, const std::vector<std::string> & module_list);
+bool dnf_module_enable(DnfContext *context, const std::vector<std::string> & module_list);
+std::vector<std::shared_ptr<ModuleMetadata> > dnf_module_query(DnfContext *context /*, filter options */);
+bool dnf_module_list(DnfContext *context /*, options */);
 
 }
 

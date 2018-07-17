@@ -67,19 +67,39 @@ dnf_module_parse_spec(const std::string module_spec, Nsvcap & spec)
 }
 
 bool
-dnf_module_dummy(const std::vector<std::string> & module_list)
+dnf_module_dummy(DnfContext *context, const std::vector<std::string> & module_list)
 {
+    const gchar *install_root = dnf_context_get_install_root(context);
+
+    std::cerr << "install_root = " << install_root << std::endl;
+
     for (auto module_spec : module_list) {
+        Nsvcap spec;
         std::cerr << "module " << module_spec << std::endl;
+
+        if (!dnf_module_parse_spec(module_spec, spec)) {
+            std::cerr << module_spec << " is not a valid spec" << std::endl;
+            continue;
+        }
+
+        std::cout << "Name: " << spec.getName() << std::endl;
+        std::cout << "Stream: " << spec.getStream() << std::endl;
+        std::cout << "Version: " << spec.getVersion() << std::endl;
+        std::cout << "Context: " << spec.getContext() << std::endl;
+        std::cout << "Arch: " << spec.getArch() << std::endl;
+        std::cout << "Profile: " << spec.getProfile() << std::endl;
     }
 
     return true;
 }
 
 bool
-dnf_module_enable(const std::vector<std::string> & module_list)
+dnf_module_enable(DnfContext *context, const std::vector<std::string> & module_list)
 {
     ModuleExceptionList exceptions;
+    const gchar *install_root = dnf_context_get_install_root(context);
+
+    std::cerr << "install_root = " << install_root << std::endl;
 
     if (module_list.empty()) {
         throw ModuleCommandException("module_list cannot be null");
@@ -122,7 +142,7 @@ dnf_module_enable(const std::vector<std::string> & module_list)
 }
 
 std::vector<std::shared_ptr<ModuleMetadata> >
-dnf_module_query(/* filter options */)
+dnf_module_query(DnfContext *context /*, filter options */)
 {
     std::vector<std::shared_ptr<ModuleMetadata> > results;
 
@@ -130,11 +150,11 @@ dnf_module_query(/* filter options */)
 }
 
 bool
-dnf_module_list(/* options */)
+dnf_module_list(DnfContext *context /*, options */)
 {
     std::vector<std::shared_ptr<ModuleMetadata> > results;
 
-    results = dnf_module_query();
+    results = dnf_module_query(context);
 
     return true;
 }
