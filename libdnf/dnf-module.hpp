@@ -51,8 +51,8 @@ private:
 
 bool dnf_module_dummy(const std::vector<std::string> & module_list);
 bool dnf_module_enable(const std::vector<std::string> & module_list);
-std::vector<std::shared_ptr<ModuleMetadata> > dnf_module_query(/* filter options */);
-bool dnf_module_list(/* options */);
+std::vector<std::shared_ptr<ModulemdModule>> dnf_module_query(GPtrArray *repos, const char *install_root, const int filter_placeholder);
+std::vector<std::shared_ptr<ModulemdModule>> dnf_module_list(GPtrArray *repos, const char *install_root, const int options_placeholder);
 
 }
 

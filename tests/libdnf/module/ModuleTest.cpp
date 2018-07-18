@@ -85,6 +85,12 @@ void ModuleTest::testList()
     std::cout << "called ModuleTest::testModList()" << std::endl;
 
     {
-        CPPUNIT_ASSERT(dnf_module_list(/* options */));
+        std::vector<std::shared_ptr<ModulemdModule>> results;
+        GPtrArray *repos = g_ptr_array_new();
+        const char *install_root = "/";
+        int options_placeholder = 0;
+
+        results = dnf_module_list(repos, install_root, options_placeholder);
+        CPPUNIT_ASSERT(results.size() == 0);
     }
 }

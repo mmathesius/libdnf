@@ -134,22 +134,27 @@ dnf_module_enable(const std::vector<std::string> & module_list)
     return true;
 }
 
-std::vector<std::shared_ptr<ModuleMetadata> >
-dnf_module_query(/* filter options */)
+std::vector<std::shared_ptr<ModulemdModule> >
+dnf_module_query(GPtrArray *repos, const char *install_root, const int filter_placeholder)
 {
-    std::vector<std::shared_ptr<ModuleMetadata> > results;
+    std::vector<std::shared_ptr<ModulemdModule>> results;
+
+    std::cerr << "dnf_module_query()" << std::endl;
+    std::cerr << "install_root = " << install_root << std::endl;
 
     return results;
 }
 
-bool
-dnf_module_list(/* options */)
+std::vector<std::shared_ptr<ModulemdModule> >
+dnf_module_list(GPtrArray *repos, const char *install_root, const int options_placeholder)
 {
-    std::vector<std::shared_ptr<ModuleMetadata> > results;
+    std::vector<std::shared_ptr<ModulemdModule>> results;
 
-    results = dnf_module_query();
+    int filter_placeholder = 0;
 
-    return true;
+    results = dnf_module_query(repos, install_root, filter_placeholder);
+
+    return results;
 }
 
 }
