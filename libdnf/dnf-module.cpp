@@ -67,12 +67,8 @@ dnf_module_parse_spec(const std::string module_spec, Nsvcap & spec)
 }
 
 bool
-dnf_module_dummy(DnfContext *context, const std::vector<std::string> & module_list)
+dnf_module_dummy(const std::vector<std::string> & module_list)
 {
-    const gchar *install_root = dnf_context_get_install_root(context);
-
-    std::cerr << "install_root = " << install_root << std::endl;
-
     for (auto module_spec : module_list) {
         Nsvcap spec;
         std::cerr << "module " << module_spec << std::endl;
@@ -94,12 +90,9 @@ dnf_module_dummy(DnfContext *context, const std::vector<std::string> & module_li
 }
 
 bool
-dnf_module_enable(DnfContext *context, const std::vector<std::string> & module_list)
+dnf_module_enable(const std::vector<std::string> & module_list)
 {
     ModuleExceptionList exceptions;
-    const gchar *install_root = dnf_context_get_install_root(context);
-
-    std::cerr << "install_root = " << install_root << std::endl;
 
     if (module_list.empty()) {
         throw ModuleCommandException("module_list cannot be null");
@@ -142,7 +135,7 @@ dnf_module_enable(DnfContext *context, const std::vector<std::string> & module_l
 }
 
 std::vector<std::shared_ptr<ModuleMetadata> >
-dnf_module_query(DnfContext *context /*, filter options */)
+dnf_module_query(/* filter options */)
 {
     std::vector<std::shared_ptr<ModuleMetadata> > results;
 
@@ -150,11 +143,11 @@ dnf_module_query(DnfContext *context /*, filter options */)
 }
 
 bool
-dnf_module_list(DnfContext *context /*, options */)
+dnf_module_list(/* options */)
 {
     std::vector<std::shared_ptr<ModuleMetadata> > results;
 
-    results = dnf_module_query(context);
+    results = dnf_module_query();
 
     return true;
 }
