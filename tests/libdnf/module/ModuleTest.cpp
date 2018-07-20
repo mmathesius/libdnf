@@ -3,6 +3,7 @@
 CPPUNIT_TEST_SUITE_REGISTRATION(ModuleTest);
 
 #include "libdnf/dnf-module.hpp"
+#include "libdnf/dnf-repo.hpp"
 
 using namespace libdnf;
 
@@ -86,9 +87,13 @@ void ModuleTest::testList()
 
     {
         std::vector<std::shared_ptr<ModulemdModule>> results;
-        GPtrArray *repos = g_ptr_array_new();
+        std::vector<DnfRepo *> repos;
         const char *install_root = "/";
         int options_placeholder = 0;
+
+        DnfRepo *repo;
+        repo = dnf_repo_new(NULL);
+        repos.push_back(repo);
 
         results = dnf_module_list(repos, install_root, options_placeholder);
         CPPUNIT_ASSERT(results.size() == 0);
