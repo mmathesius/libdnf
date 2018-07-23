@@ -12,6 +12,7 @@ SET (CONF_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/ConfigMain.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ConfigRepo.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ConfigParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ConfigModule.cpp
         PARENT_SCOPE
         )
 
@@ -31,5 +32,6 @@ SET (CONF_HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/ConfigMain.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ConfigRepo.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ConfigParser.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ConfigModule.hpp
         PARENT_SCOPE
         )
