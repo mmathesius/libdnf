@@ -325,14 +325,40 @@ static std::pair<std::string, std::string> getPlatformStream(const std::string &
     throw std::runtime_error("Missing PLATFORM_ID in " + osReleasePath);
 }
 
-Id createPlatformSolvable(Pool *pool, const std::string &osReleasePath)
+Id createPlatformSolvable(Pool *pool, const std::string &osReleasePath,
+    const std::string install_root, const char * platformModule)
 {
     Repo *repo = repo_create(pool, HY_SYSTEM_REPO_NAME);
     Id id = repo_add_solvable(repo);
     Solvable *solvable = pool_id2solvable(pool, id);
-    auto platform = getPlatformStream(osReleasePath);
-    std::string name = platform.first;
-    std::string stream = platform.second;
+    std::string name;
+    std::string stream;
+    std::pair<std::string, std::string> platform;
+    if (!platformModule) {
+        std::string path;
+        if (install_root == "/") {
+            path = osReleasePath;
+        } else {
+            if (install_root.back() == '/') {
+                path = install_root.substr(0, install_root.size() -1);
+            } else {
+                path = install_root;
+            }
+            path += osReleasePath;
+        }
+        platform = getPlatformStream(path);
+        name = platform.first;
+        stream = platform.second;
+    } else {
+        std::string platform = platformModule;
+        auto index = platform.find(':');
+        if (index == std::string::npos) {
+            throw std::runtime_error("Invalid Platform module (missing ':' in value) in "
+                + platform);
+        }
+        name = platform.substr(0,index);
+        stream = platform.substr(index+1);
+    }
     std::string version = "0";
     std::string context = "00000000";
     setSovable(pool, solvable, name, stream, version, context, "noarch");

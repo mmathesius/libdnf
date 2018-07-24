@@ -2115,9 +2115,9 @@ void createConflictsBetweenStreams(const std::map<Id, std::shared_ptr<ModulePack
     }
 }
 
-void readModuleMetadataFromRepo(const GPtrArray *repos,
-                                ModulePackageContainer &modulePackages,
-                                ModuleDefaultsContainer &moduleDefaults)
+void readModuleMetadataFromRepo(const GPtrArray *repos, ModulePackageContainer & modulePackages,
+    ModuleDefaultsContainer & moduleDefaults, const char * install_root,
+    const char * platformModule)
 {
     auto pool = modulePackages.getPool();
 
@@ -2141,7 +2141,7 @@ void readModuleMetadataFromRepo(const GPtrArray *repos,
         }
     }
     // TODO remove hard-coded path
-    createPlatformSolvable(pool.get(), "/etc/os-release");
+    createPlatformSolvable(pool.get(), "/etc/os-release", install_root, platformModule);
 }
 
 void readModuleDefaultsFromDisk(const std::string &dirPath, ModuleDefaultsContainer &moduleDefaults)
@@ -2219,7 +2219,8 @@ static void setModuleExcludes(DnfSack *sack, std::vector<std::string> &includeNE
 
 }
 
-void dnf_sack_filter_modules(DnfSack *sack, GPtrArray *repos, const char *install_root)
+void dnf_sack_filter_modules(DnfSack *sack, GPtrArray *repos, const char *install_root,
+    const char * platformModule)
 {
     // TODO: remove hard-coded path
     std::string defaultsDirPath = g_build_filename(install_root, "/etc/dnf/modules.defaults.d/", NULL);
@@ -2228,7 +2229,7 @@ void dnf_sack_filter_modules(DnfSack *sack, GPtrArray *repos, const char *instal
     ModulePackageContainer modulePackages{std::shared_ptr<Pool>(pool_create(), &pool_free), priv->arch};
     ModuleDefaultsContainer moduleDefaults;
 
-    readModuleMetadataFromRepo(repos, modulePackages, moduleDefaults);
+    readModuleMetadataFromRepo(repos, modulePackages, moduleDefaults, install_root, platformModule);
     readModuleDefaultsFromDisk(defaultsDirPath, moduleDefaults);
 
     try {

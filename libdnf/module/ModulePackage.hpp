@@ -87,7 +87,8 @@ private:
 
 inline Pool * ModulePackage::getPool() { return pool;}
 
-Id createPlatformSolvable(Pool *pool, const std::string &osReleasePath);
+Id createPlatformSolvable(Pool *pool, const std::string &osReleasePath,
+    const std::string install_root, const char *  platformModule);
 std::unique_ptr<libdnf::IdQueue> moduleSolve(const std::vector<std::shared_ptr<ModulePackage>> & modules);
 
 #endif //LIBDNF_MODULEPACKAGE_HPP
