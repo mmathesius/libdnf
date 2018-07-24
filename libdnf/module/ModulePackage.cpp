@@ -290,7 +290,7 @@ void ModulePackage::addStreamConflict(const std::shared_ptr<ModulePackage> &pack
     solvable_add_deparray(solvable, SOLVABLE_CONFLICTS, depId, -1);
 }
 
-static std::string getPlatformStream(const std::string &osReleasePath)
+static std::pair<std::string, std::string> getPlatformStream(const std::string &osReleasePath)
 {
     auto file = libdnf::File::newFile(osReleasePath);
     file->open("r");
@@ -299,17 +299,26 @@ static std::string getPlatformStream(const std::string &osReleasePath)
         if (line.find("PLATFORM_ID") != std::string::npos) {
             auto equalCharPosition = line.find('=');
             if (equalCharPosition == std::string::npos)
-                throw std::runtime_error("Invalid format (missing '=') of PLATFORM_ID in " + osReleasePath);
-
+                throw std::runtime_error("Invalid format (missing '=') of PLATFORM_ID in "
+                + osReleasePath);
+            auto startPosition = line.find('"', equalCharPosition + 1);
+            if (startPosition == std::string::npos) {
+                throw std::runtime_error("Invalid format (missing '\"' in value) of PLATFORM_ID in "
+                + osReleasePath);
+            }
             auto colonCharPosition = line.find(':', equalCharPosition + 1);
             if (colonCharPosition == std::string::npos) {
-                throw std::runtime_error("Invalid format (missing ':' in value) of PLATFORM_ID in " + osReleasePath);
+                throw std::runtime_error("Invalid format (missing ':' in value) of PLATFORM_ID in "
+                + osReleasePath);
             }
             auto endPosition = line.find('"', colonCharPosition + 1);
             if (endPosition == std::string::npos) {
-                throw std::runtime_error("Invalid format (missing '\"' in value) of PLATFORM_ID in " + osReleasePath);
+                throw std::runtime_error("Invalid format (missing '\"' in value) of PLATFORM_ID in "
+                + osReleasePath);
             }
-            return line.substr(colonCharPosition + 1, endPosition - colonCharPosition -1);
+            return make_pair(
+                line.substr(startPosition + 1, colonCharPosition - startPosition -1),
+                line.substr(colonCharPosition + 1, endPosition - colonCharPosition -1));
         }
     }
 
@@ -321,9 +330,9 @@ Id createPlatformSolvable(Pool *pool, const std::string &osReleasePath)
     Repo *repo = repo_create(pool, HY_SYSTEM_REPO_NAME);
     Id id = repo_add_solvable(repo);
     Solvable *solvable = pool_id2solvable(pool, id);
-
-    std::string name = "platform";
-    std::string stream = getPlatformStream(osReleasePath);
+    auto platform = getPlatformStream(osReleasePath);
+    std::string name = platform.first;
+    std::string stream = platform.second;
     std::string version = "0";
     std::string context = "00000000";
     setSovable(pool, solvable, name, stream, version, context, "noarch");
