@@ -25,7 +25,9 @@
  *
  * High level interface for managing modules.
  */
+
 #include <sstream>
+#include <memory>
 
 #include "dnf-module.h"
 #include "log.hpp"
@@ -40,7 +42,16 @@
 #include "utils/File.hpp"
 #include "utils/utils.hpp"
 
-auto logger(libdnf::Log::getLogger());
+#include <iostream>
+// auto logger(libdnf::Log::getLogger());
+class MyLogger : Logger {
+public:
+    void write(int source, time_t time, pid_t pid, Level level, const std::string & message) {
+        std::cout << source << " " << time << " " << pid << " " << levelToCStr(level) << ": " << message << std::endl;
+    }
+
+} myLogger;
+static Logger * logger((Logger *)&myLogger);
 
 namespace {
 
@@ -407,6 +418,89 @@ bool dnf_module_enable(const std::vector<std::string> & module_list,
         throw exList;
 
     return true;
+}
+
+/**
+ * dnf_module_query
+ * @sack: DnfSack instance
+ * @repos: the list of repositories from which to load modules
+ * @install_root: directory relative to which all files are read/written
+ * @filters: query filtering options
+ *
+ * Query module method
+ *
+ * Returns: list of modules
+ *
+ * Since: 999999.0.0
+ */
+std::vector<std::shared_ptr<ModulemdModule> >
+dnf_module_query(DnfSack *sack,
+                 GPtrArray *repos,
+                 const char *install_root,
+                 const char *platformModule,
+                 HyQuery filters)
+{
+    ModuleExceptionList exList;
+
+    std::ostringstream oss;
+    oss << "dnf_module_query()\n";
+    oss << "install_root = " << install_root << "\n";
+    oss << "repo count = " << repos->len << "\n";
+    for (guint i = 0; i < repos->len; i++) {
+        auto repo = static_cast<DnfRepo *>(g_ptr_array_index(repos, i));
+        oss << "repo #" << i << " " << dnf_repo_get_id(repo) << "\n";
+    }
+    logger->debug(oss.str());
+
+    char *arch;
+    hy_detect_arch(&arch);
+
+    /* FIXME:
+     * we should get this information from somewhere else so that we don't have
+     * to gather the list of existing modules and their state every time this
+     * API is called.
+     */
+    ModulePackageContainer packages{std::shared_ptr<Pool>(pool_create(), &pool_free), arch};
+    ModuleDefaultsContainer defaults;
+
+    readModuleMetadataFromRepo(repos, packages, defaults, install_root, platformModule);
+
+    const std::string defaultsDirPath = g_build_filename(install_root, MODULEDEFAULTSDIR, NULL);
+    readModuleDefaultsFromDisk(defaultsDirPath, defaults);
+
+    try {
+        defaults.resolve();
+    } catch (ModuleDefaultsContainer::ResolveException &e) {
+        exList.add(e.what());
+    }
+
+    enableModuleStreams(packages, install_root);
+
+    auto modulePackages = packages.getModulePackages();
+
+    // list defined modules for debugging
+    std::ostringstream().swap(oss);
+    for (const auto &module : modulePackages) {
+        oss << "Got module " << module->getFullIdentifier() << "\n";
+        auto moduleProfiles = module->getProfiles();
+        oss << "  " << moduleProfiles.size() << " profiles:" << "\n";
+        for (const auto &profile : moduleProfiles) {
+            oss << "    " << profile->getName() << "\n";
+        }
+    }
+    logger->debug(oss.str());
+
+    // TODO: filter modules
+
+    std::vector<std::shared_ptr<ModulemdModule>> results;
+    for (const auto &module : modulePackages) {
+        std::shared_ptr<ModulemdModule> modulemd;
+        // TODO: extract Modulemd.Module data from module
+        //   (is this even possible?)
+        results.push_back(modulemd);
+    }
+
+    return results;
 }
 
 }

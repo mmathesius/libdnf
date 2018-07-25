@@ -24,6 +24,8 @@
 #include <vector>
 
 #include "dnf-types.h"
+#include "hy-query.h"
+#include "module/modulemd/ModuleMetadata.hpp"
 
 namespace libdnf {
 
@@ -45,6 +47,7 @@ private:
 
 bool dnf_module_dummy(const std::vector<std::string> & module_list);
 bool dnf_module_enable(const std::vector<std::string> & module_list, DnfSack *sack, GPtrArray *repos, const char *install_root, const char *platformModule);
+std::vector<std::shared_ptr<ModulemdModule>> dnf_module_query(DnfSack *sack, GPtrArray *repos, const char *install_root, const char *platformModule, HyQuery filters);
 
 }
 
