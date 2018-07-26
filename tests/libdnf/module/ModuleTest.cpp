@@ -101,3 +101,49 @@ void ModuleTest::testEnable()
         CPPUNIT_ASSERT(enabled.fromString(parser.getValue("httpd", "enabled")));
     }
 }
+
+void ModuleTest::testDisable()
+{
+    GPtrArray *repos = dnf_context_get_repos(context);
+    auto sack = dnf_context_get_sack(context);
+    auto install_root = dnf_context_get_install_root(context);
+    const char *platformModule = "platform:f26";
+
+    logger->debug("called ModuleTest::testDisable()");
+
+    /* call with empty module list should throw error */
+    {
+        std::vector<std::string> module_list;
+        CPPUNIT_ASSERT_THROW(libdnf::dnf_module_enable(module_list, sack, repos, install_root, platformModule), libdnf::ModuleExceptionList);
+    }
+
+    /* call with invalid specs should fail */
+    {
+        std::vector<std::string> module_list{"moduleA:", "moduleB#streamB", "moduleC:streamC#profileC"};
+        CPPUNIT_ASSERT_THROW(libdnf::dnf_module_enable(module_list, sack, repos, install_root, platformModule), libdnf::ModuleExceptionList);
+    }
+
+    /* call with valid specs should succeed */
+    {
+        std::vector<std::string> module_list{"httpd:2.4", "base-runtime"};
+        CPPUNIT_ASSERT(libdnf::dnf_module_disable(module_list, sack, repos, install_root, platformModule));
+        libdnf::ConfigParser parser{};
+        libdnf::OptionBool enabled{true};
+        parser.read(TESTDATADIR "/modules/etc/dnf/modules.d/httpd.module");
+        CPPUNIT_ASSERT(!enabled.fromString(parser.getValue("httpd", "enabled")));
+        parser.read(TESTDATADIR "/modules/etc/dnf/modules.d/base-runtime.module");
+        CPPUNIT_ASSERT(!enabled.fromString(parser.getValue("base-runtime", "enabled")));
+    }
+
+    /* call with enabled module should succeed */
+    {
+        std::vector<std::string> module_list{"httpd:2.2"};
+        /* make sure module is enabled */
+        //CPPUNIT_ASSERT(libdnf::dnf_module_disable(module_list, sack, repos, install_root, platformModule));
+        CPPUNIT_ASSERT(libdnf::dnf_module_disable(module_list, sack, repos, install_root, platformModule));
+        libdnf::ConfigParser parser{};
+        libdnf::OptionBool enabled{true};
+        parser.read(TESTDATADIR "/modules/etc/dnf/modules.d/httpd.module");
+        CPPUNIT_ASSERT(!enabled.fromString(parser.getValue("httpd", "enabled")));
+    }
+}

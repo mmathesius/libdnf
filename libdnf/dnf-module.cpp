@@ -298,6 +298,57 @@ void enable_module_do(const libdnf::Nsvcap &spec,
     /* FIXME: resolve module deps (TBD) */
 }
 
+void disable_module_do(const libdnf::Nsvcap &spec,
+                       ModulePackageContainer &packages,
+                       ModuleDefaultsContainer &defaults,
+                       const char *install_root)
+{
+    const auto &name = spec.getName();
+
+    const auto cfgFilepath = getConfFilepath(install_root, name);
+
+    /* read module config for current settings */
+    auto modconf = loadModuleConf(cfgFilepath, name);
+
+    /* find appropriate stream according to priority */
+    std::string stream("");
+    if (spec.getStream() != "") {
+        stream = spec.getStream();
+    } else if (modconf.enabled().getValue()) {
+        stream = modconf.stream().getValue();
+    } else {
+        stream = defaults.getDefaultStreamFor(name);
+    }
+
+    if (!module_exists(name, stream, packages)) {
+        std::ostringstream oss;
+        oss << name << ":" << stream << " does not exist";
+        throw libdnf::ModuleException(oss.str());
+    }
+
+    if (!modconf.enabled().getValue() && modconf.stream().getValue() == stream) {
+        std::ostringstream oss;
+        oss << name << " already disabled. Nothing to do";
+        logger->debug(oss.str());
+        return;
+    }
+
+    {
+        std::ostringstream oss;
+        oss << "Disable '" << name << ":" << stream << "'";
+        logger->debug(oss.str());
+    }
+
+    packages.disable(name, stream);
+
+    modconf.enabled().set(PRIO, false);
+    modconf.stream().set(PRIO, "");
+    //modconf.version().set(PRIO, -1);
+    saveModuleConf(cfgFilepath, modconf);
+
+    /* FIXME: resolve module deps (TBD) */
+}
+
 }
 
 namespace libdnf {
@@ -395,6 +446,87 @@ bool dnf_module_enable(const std::vector<std::string> & module_list,
 
         try {
             enable_module_do(specParsed, packages, defaults, install_root);
+        } catch (ModuleException &e) {
+            exList.add(e);
+        }
+    }
+
+    dnf_sack_filter_modules(sack, repos, install_root, platformModule);
+
+    free(arch);
+
+    if (!exList.empty())
+        throw exList;
+
+    return true;
+}
+
+/**
+ * dnf_module_disable
+ * @module_list: The list of module specs to disable
+ * @sack: DnfSack instance
+ * @repos: the list of repositories where to load modules from
+ * @install_root
+ *
+ * Disable module method
+ *
+ * Returns: %TRUE for success, %FALSE otherwise
+ *
+ * Since: 0.0.0
+ */
+bool dnf_module_disable(const std::vector<std::string> & module_list,
+                        DnfSack *sack, GPtrArray *repos,
+                        const char *install_root,
+                        const char *platformModule)
+{
+    ModuleExceptionList exList;
+
+    if (module_list.empty())
+        exList.add("module list cannot be empty");
+
+    char *arch;
+    hy_detect_arch(&arch);
+
+    /* FIXME:
+     * we should get this information from somewhere else so that we don't have
+     * to gather the list of existing modules and their state every time this
+     * API is called.
+     */
+    ModulePackageContainer packages{std::shared_ptr<Pool>(pool_create(), &pool_free), arch};
+    ModuleDefaultsContainer defaults;
+
+    readModuleMetadataFromRepo(repos, packages, defaults, install_root, platformModule);
+
+    g_autofree gchar *defaultsDirPath = g_build_filename(install_root, MODULEDEFAULTSDIR, NULL);
+    readModuleDefaultsFromDisk(defaultsDirPath, defaults);
+
+    try {
+        defaults.resolve();
+    } catch (ModuleDefaultsContainer::ResolveException &e) {
+        exList.add(e.what());
+    }
+
+    enableModuleStreams(packages, install_root);
+
+    for (const auto & spec : module_list) {
+        libdnf::Nsvcap specParsed;
+
+        try {
+            dnf_module_parse_spec(spec, specParsed);
+
+            std::ostringstream oss;
+            oss << "Name = " << specParsed.getName() << "\n";
+            oss << "Stream = " << specParsed.getStream() << "\n";
+            oss << "Profile = " << specParsed.getProfile() << "\n";
+            oss << "Version = " << specParsed.getVersion() << "\n";
+            logger->debug(oss.str());
+        } catch (ModuleException &e) {
+            exList.add(e);
+            continue;
+        }
+
+        try {
+            disable_module_do(specParsed, packages, defaults, install_root);
         } catch (ModuleException &e) {
             exList.add(e);
         }
