@@ -278,6 +278,14 @@ void ModulePackage::enable()
 }
 
 /**
+ * @brief Mark ModulePackage as not part of any stream.
+ */
+void ModulePackage::disable()
+{
+    state = ModuleState::DISABLED;
+}
+
+/**
  * @brief Add conflict with a module stream represented as a ModulePackage.
  */
 void ModulePackage::addStreamConflict(const std::shared_ptr<ModulePackage> &package)

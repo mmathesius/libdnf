@@ -38,7 +38,8 @@ class ModulePackage // TODO inherit in future; : public Package
 public:
     enum class ModuleState {
         UNKNOWN,
-        ENABLED
+        ENABLED,
+        DISABLED
     };
 
     ModulePackage(Pool *pool, Repo *repo, const std::shared_ptr<ModuleMetadata> &metadata);
@@ -70,6 +71,7 @@ public:
     void addStreamConflict(const std::shared_ptr<ModulePackage> &package);
 
     void enable();
+    void disable();
 
     Id getId() const { return id; };
     Pool * getPool();

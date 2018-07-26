@@ -62,6 +62,7 @@ public:
     std::vector<std::shared_ptr<ModulePackage>> getModulePackages();
 
     void enable(const std::string &name, const std::string &stream);
+    void disable(const std::string &name, const std::string &stream);
 
     std::vector<std::shared_ptr<ModulePackage>> getActiveModulePackages(const std::map<std::string, std::string> &defaultStreams);
 

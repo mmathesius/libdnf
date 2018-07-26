@@ -70,6 +70,16 @@ void ModulePackageContainer::enable(const std::string &name, const std::string &
     }
 }
 
+void ModulePackageContainer::disable(const std::string &name, const std::string &stream)
+{
+    for (const auto &iter : modules) {
+        auto modulePackage = iter.second;
+        if (modulePackage->getName() == name && modulePackage->getStream() == stream) {
+            modulePackage->disable();
+        }
+    }
+}
+
 std::vector<std::shared_ptr<ModulePackage>> ModulePackageContainer::getActiveModulePackages(const std::map<std::string, std::string> &defaultStreams)
 {
     std::vector<std::shared_ptr<ModulePackage>> packages;
