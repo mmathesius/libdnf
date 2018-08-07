@@ -67,6 +67,7 @@ public:
     std::vector<std::shared_ptr<ModuleDependencies> > getModuleDependencies() const;
 
     bool isEnabled();
+    bool isDisabled();
 
     void addStreamConflict(const std::shared_ptr<ModulePackage> &package);
 

@@ -278,6 +278,14 @@ void ModulePackage::enable()
 }
 
 /**
+ * @brief Is a ModulePackage not part of any stream?
+ */
+bool ModulePackage::isDisabled()
+{
+    return state == ModuleState::DISABLED;
+}
+
+/**
  * @brief Mark ModulePackage as not part of any stream.
  */
 void ModulePackage::disable()
