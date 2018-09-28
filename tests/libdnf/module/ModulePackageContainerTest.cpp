@@ -4,8 +4,10 @@ CPPUNIT_TEST_SUITE_REGISTRATION(ModulePackageContainerTest);
 
 #include "libdnf/log.hpp"
 #include "libdnf/dnf-sack-private.hpp"
+#include "libdnf/utils/File.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 auto logger(libdnf::Log::getLogger());
 
@@ -151,4 +153,35 @@ void ModulePackageContainerTest::testRemoveProfile()
     CPPUNIT_ASSERT(installed.empty());
 
     modules->save();
+}
+
+void ModulePackageContainerTest::testWriteModulemdStash()
+{
+    modules->writeModulemdStash();
+
+    auto latestEnabledModules = modules->getLatestEnabledModules(false);
+
+    CPPUNIT_ASSERT(latestEnabledModules.size() == 2);
+
+    for (const auto &module : latestEnabledModules) {
+        std::string modName = module->getName();
+        std::string modYaml = module->getYaml();
+        CPPUNIT_ASSERT(modName == "httpd" || modName == "base-runtime");
+        std::string stashFile = TESTDATADIR "/modules/etc/dnf/modulemd.stash/latest." + modName;
+        auto yaml = libdnf::File::newFile(stashFile);
+        CPPUNIT_ASSERT(yaml);
+        yaml->open("r");
+        const auto &fileYaml = yaml->getContent();
+        yaml->close();
+        CPPUNIT_ASSERT(modYaml == fileYaml);
+    }
+
+}
+
+void ModulePackageContainerTest::testLoadModulemdStash()
+{
+    auto stash = modules->loadModulemdStash();
+
+    CPPUNIT_ASSERT(stash != "");
+    // std::cout << "Stash: '" << stash << "'" << std::endl;
 }

@@ -17,6 +17,8 @@ class ModulePackageContainerTest : public CppUnit::TestCase
         CPPUNIT_TEST(testRollback);
         CPPUNIT_TEST(testInstallProfile);
         CPPUNIT_TEST(testRemoveProfile);
+        CPPUNIT_TEST(testWriteModulemdStash);
+        CPPUNIT_TEST(testLoadModulemdStash);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -30,6 +32,8 @@ public:
     void testRollback();
     void testInstallProfile();
     void testRemoveProfile();
+    void testWriteModulemdStash();
+    void testLoadModulemdStash();
 
 private:
     DnfContext *context;
