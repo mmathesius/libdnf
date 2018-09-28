@@ -1318,3 +1318,84 @@ ModulePackageContainer::Impl::ModulePersistor::getRemovedProfiles()
 
     return profiles;
 }
+
+/*
+ * Store modulemds in a private DNF directory for:
+ * 1) every installed modular RPM (might include multiple versions of a module)
+ * 2) the latest seen modulemd for every enabled module.
+ */
+void
+ModulePackageContainer::writeModulemdStash()
+{
+    const gchar * stashPath = "/etc/dnf/modulemd.stash/";
+    g_autofree gchar * dirPath = g_build_filename(
+        pImpl->installRoot.c_str(), stashPath, NULL);
+    makeDirPath(std::string(dirPath));
+
+    // TODO Save modulemd for every installed modular RPM
+
+    /* save latest modulemd for every enabled module */
+    auto latestEnabledModules = getLatestEnabledModules(false);
+    for (auto & module: latestEnabledModules) {
+        auto fname = "latest." + module->getName();
+        g_autofree gchar *fPath = g_build_filename(dirPath, fname.c_str(), NULL);
+        std::string yamlContent = module->getYaml();
+        setFileContent(fPath, yamlContent);
+    }
+
+}
+
+/*
+ * Fetch the stored modulemds. These will be concatenating with whatever
+ * comes from repos. Offline, without a cache, you would have at least
+ * this, still knowing what RPMs are modular and being able to run module
+ * list, module info, and such.
+ */
+std::string
+ModulePackageContainer::loadModulemdStash()
+{
+    g_autofree gchar * dirPath = g_build_filename(
+        pImpl->installRoot.c_str(), "/etc/dnf/modulemd.stash/", NULL);
+
+    std::string stashContent;
+
+    for (const auto &file : filesystem::getDirContent(dirPath)) {
+        stashContent += getFileContent(file);
+    }
+
+    return stashContent;
+}
+
+// TODO Fix this. It's complete rubbish.
+std::vector<ModulePackagePtr>
+ModulePackageContainer::loadModulemdStash(const std::string & repoID)
+{
+    Pool * pool = dnf_sack_get_pool(pImpl->moduleSack);
+    Repo * r;
+    Id id;
+
+    Repo * stashrepo = NULL;
+    FOR_REPOS(id, r) {
+        if (strcmp(r->name, "available") == 0) {
+            stashrepo = r;
+            break;
+        }
+    }
+
+    if (!stashrepo) {
+      // ERROR??
+      return {};
+    }
+
+    std::string stashContent = loadModulemdStash();
+    auto metadata = ModuleMetadata::metadataFromString(stashContent);
+    std::vector<ModulePackagePtr> modules;
+
+    for (auto data : metadata) {
+        ModulePackagePtr modulePackage(new ModulePackage(pImpl->moduleSack, stashrepo, data,
+            repoID));
+        modules.push_back(modulePackage);
+    }
+
+    return modules;
+}

@@ -213,6 +213,15 @@ public:
     std::vector<std::vector<std::string>> resolveActiveModulePackages(bool debugSolver);
     bool isModuleActive(Id id);
     bool isModuleActive(ModulePackagePtr modulePackage);
+    /**
+     * @brief write module metadata stash for modular RPM tracking
+     */
+    void writeModulemdStash();
+    /**
+     * @brief load module metadata stash for modular RPM tracking
+     */
+    std::string loadModulemdStash();
+    std::vector<ModulePackagePtr> loadModulemdStash(const std::string & repoID);
 
 private:
     class Impl;
