@@ -35,6 +35,11 @@ public:
         explicit ShortReadException(const std::string &filePath) : IOException("Short read of file: " + filePath) {}
     };
 
+    struct ShortWriteException : IOException
+    {
+        explicit ShortWriteException(const std::string &filePath) : IOException("Short write of file: " + filePath) {}
+    };
+
     static std::shared_ptr<File> newFile(const std::string &filePath);
 
     explicit File(const std::string &filePath);
@@ -46,6 +51,9 @@ public:
     size_t read(char *buffer, size_t count);
     bool readLine(std::string &line);
     virtual std::string getContent();
+
+    size_t write(const char *buffer, size_t count);
+    void setContent(std::string content);
 
 protected:
     std::string filePath;

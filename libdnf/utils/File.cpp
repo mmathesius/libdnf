@@ -92,3 +92,16 @@ std::string libdnf::File::getContent()
     return content;
 }
 
+size_t libdnf::File::write(const char *buffer, size_t count)
+{
+    return fwrite(buffer, sizeof(char), count, file);
+}
+
+void libdnf::File::setContent(std::string content)
+{
+    auto bytesWritten = write(content.c_str(), content.length());
+    if (bytesWritten != content.length()) {
+        throw ShortWriteException(filePath);
+    }
+}
+
