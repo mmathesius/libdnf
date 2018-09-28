@@ -590,19 +590,21 @@ ModulePackageContainer::getModuleState(const std::string& name)
     return pImpl->persistor->getState(name);
 }
 
-std::set<std::string> ModulePackageContainer::getInstalledPkgNames()
+std::vector<ModulePackagePtr>
+ModulePackageContainer::getLatestEnabledModules(bool withInstalledProfiles)
 {
-    std::map<std::string, std::vector<std::shared_ptr<ModulePackage>>> moduleMap;
+    std::vector<ModulePackagePtr> output;
     auto moduleNames = pImpl->persistor->getAllModuleNames();
-    std::set<std::string> pkgNames;
     for (auto & moduleName: moduleNames) {
         auto stream = getEnabledStream(moduleName);
         if (stream.empty()) {
             continue;
         }
-        auto profilesInstalled = getInstalledProfiles(moduleName);
-        if (profilesInstalled.empty()) {
-            continue;
+        if (withInstalledProfiles) {
+            auto profilesInstalled = getInstalledProfiles(moduleName);
+            if (profilesInstalled.empty()) {
+                continue;
+            }
         }
         std::string nameStream(moduleName);
         nameStream += ":";
@@ -634,6 +636,18 @@ std::set<std::string> ModulePackageContainer::getInstalledPkgNames()
         if (!latest) {
             continue;
         }
+        output.push_back(latest);
+    }
+    return output;
+}
+
+std::set<std::string>
+ModulePackageContainer::getInstalledPkgNames()
+{
+    auto moduleNames = pImpl->persistor->getAllModuleNames();
+    std::set<std::string> pkgNames;
+    for (auto & latest: getLatestEnabledModules(true)) {
+        auto profilesInstalled = getInstalledProfiles(latest->getName());
         for (auto & profile: profilesInstalled) {
             auto profiles = latest->getProfiles(profile);
             for (auto & profile: profiles) {
