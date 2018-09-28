@@ -98,6 +98,16 @@ static std::string getFileContent(const std::string &filePath)
     return yamlContent;
 }
 
+static void
+setFileContent(const std::string &filePath, const std::string fileContent)
+{
+    auto yaml = libdnf::File::newFile(filePath);
+
+    yaml->open("w");
+    yaml->setContent(fileContent);
+    yaml->close();
+}
+
 class ModulePackageContainer::Impl {
 public:
     Impl();
